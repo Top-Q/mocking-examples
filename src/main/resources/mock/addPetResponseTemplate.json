@@ -1,0 +1,18 @@
+{
+  "id": 12121212,
+  "category": {
+    "id": 0,
+    "name": "string"
+  },
+  "name": "{{jsonPath request.body '$.name'}}",
+  "photoUrls": [
+    "string"
+  ],
+  "tags": [
+    {
+      "id": 0,
+      "name": "string"
+    }
+  ],
+  "status": "available"
+}
