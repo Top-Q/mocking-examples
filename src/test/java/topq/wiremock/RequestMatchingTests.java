@@ -15,24 +15,21 @@ public class RequestMatchingTests extends AbstractMockedTest{
 
     @Test
     @SneakyThrows
-    public void testBasicStubbing() {
-        String expectedDogName = "Rex";
-        JSONObject json = new JSONObject(resourceToString("mock/addPetResponseTemplate.json"));
-        json.put("name", expectedDogName);
-
-        stubFor(post(urlEqualTo("/pet"))
-                .willReturn(aResponse()
-                        .withHeader("Content-Type", "application/json")
-                        .withBody(json.toString())
-                        .withTransformers("response-template")));
-
-
-        Response<String> response = mockedPetStore.addPet(resourceToString("real/addPetRequest.json")).execute();
-        System.out.println(response.body());
-        assertThat(response.code()).isEqualTo(200);
-        String actualDogName = new JSONObject(response.body()).get("name").toString();
-        System.out.println(actualDogName);
-        assertThat(actualDogName).isEqualTo(expectedDogName);
+    public void testRequestMatching() {
+        stubFor(any(urlPathEqualTo("/everything"))
+                .withHeader("Accept", containing("xml"))
+                .withCookie("session", matching(".*12345.*"))
+                .withQueryParam("search_term", equalTo("WireMock"))
+                .withBasicAuth("jeff@example.com", "jeffteenjefftyjeff")
+                .withRequestBody(equalToXml("<search-results />"))
+                .withRequestBody(matchingXPath("//search-results"))
+                .withMultipartRequestBody(
+                        aMultipart()
+                                .withName("info")
+                                .withHeader("Content-Type", containing("charset"))
+                                .withBody(equalToJson("{}"))
+                )
+                .willReturn(aResponse()));
     }
 
 }

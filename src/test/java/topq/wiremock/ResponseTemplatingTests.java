@@ -16,27 +16,24 @@ public class ResponseTemplatingTests extends AbstractMockedTest{
 
     @Test
     @SneakyThrows
-    public void testEditingStubs() {
-        JSONObject json = new JSONObject(resourceToString("mock/addPetResponse.json"));
-        json.put("name", "Rex");
-        UUID id = UUID.randomUUID();
-        stubFor(get(urlEqualTo("/pet/1"))
-                .withId(id)
-                .willReturn(aResponse()
-                        .withHeader("Content-Type", "application/json")
-                        .withBody(json.toString())));
-        Response<String> response = mockedPetStore.getPetById("1").execute();
-        assertThat(new JSONObject(response.body()).get("name")).isEqualTo("Rex");
+    public void testResponseTemplate() {
+        String expectedDogName = "Rex";
+        JSONObject json = new JSONObject(resourceToString("mock/addPetResponseTemplate.json"));
+        json.put("name", expectedDogName);
 
-        json.put("name", "Max");
-        // NOTE: We are using editStub instead of stubFor with the same id
-        editStub(get(urlEqualTo("/pet/1"))
-                .withId(id)
+        stubFor(post(urlEqualTo("/pet"))
                 .willReturn(aResponse()
                         .withHeader("Content-Type", "application/json")
-                        .withBody(json.toString())));
-        response = mockedPetStore.getPetById("1").execute();
-        assertThat(new JSONObject(response.body()).get("name")).isEqualTo("Max");
+                        .withBody(json.toString())
+                        .withTransformers("response-template")));
+
+
+        Response<String> response = mockedPetStore.addPet(resourceToString("real/addPetRequest.json")).execute();
+        System.out.println(response.body());
+        assertThat(response.code()).isEqualTo(200);
+        String actualDogName = new JSONObject(response.body()).get("name").toString();
+        System.out.println(actualDogName);
+        assertThat(actualDogName).isEqualTo(expectedDogName);
     }
 
 }
